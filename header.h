@@ -1,5 +1,3 @@
-#ifndef HEADER__H__
-#define HEADER__H__
 // WTF - A basic client/server VC written in C.
 // Copyright (C) 2019  Tom Fiorilla and Ron Wolf
 // 
@@ -21,8 +19,8 @@
 #define __HEADER_H__
 
 #include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <stdio.h> // popen, pclose
+#include <stdlib.h> // system
 #include <unistd.h>
 #include <sys/errno.h>
 #include <sys/stat.h>
