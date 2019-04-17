@@ -14,10 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
-#ifndef __HEADER_H__
-#define __HEADER_H__
-
+#ifndef _HEADER_H_
 #include <string.h>
 #include <stdio.h> // popen, pclose
 #include <stdlib.h> // system
@@ -28,4 +25,5 @@
 #include <dirent.h>
 #include <dirent.h>
 
+#define _HEADER_H_
 #endif
