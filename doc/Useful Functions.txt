@@ -1,0 +1,43 @@
+-- stdio.h --
+
+popen(3)
+  popen : (command : string), (mode : string) -> (stream : FILE)
+  pclose : (stream : FILE) -> (exit : int)
+  - create a bidirectional stream from a shell command
+
+-- stdlib.h --
+
+system(3)
+  system : (command : string) -> (exit : int)
+  - run a command using the shell
+
+-- unistd.h --
+
+fork(2)
+  fork : -> (pid : int)
+
+-- sys/socket.h --
+
+accept(2)
+  accept : (sock_fd : int), (sock_addr : * (struct sockaddr)), (addr_len : socklen_t) -> (sock_fd : int)
+  - 
+
+bind(2)
+  bind : (sock_fd : int), (sock_addr : * (struct sockaddr)), (addr_len : socklen_t) -> (status : int)
+  - assign an address to a socket created with socket()
+
+listen(2)
+  listen : (sock_fd : int, max_conns : int)
+  - prepare a socket to be used by accept()
+
+socket(2)
+  socket : (comm_domain : int), (sock_type : int), (protocol : int) -> (sock_fd : int)
+  - open an endpoint for inter-process communication, potentially across different computers
+  - type should be SOCK_STREAM or SOCK_SEQPACKET, as per listen(2)
+
+
+server-side:
+socket, bind, listen, accept
+
+client-side:
+socket, connect
