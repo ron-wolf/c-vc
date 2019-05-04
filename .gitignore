@@ -1,4 +1,9 @@
+# project
+
 *.pdf
+WTF*
+!*.c
+!*.h
 
 
 
