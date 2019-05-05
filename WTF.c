@@ -28,7 +28,7 @@ char usage[] = "./WTF configure {IP address} {port #}" "\n"
 ;
                
 
-inline unsigned long hash(unsigned char * string) {
+static unsigned long hash(char * string) {
     unsigned long hash = 5381;
     int c; while ((c = *(string++)))
         hash = ((hash << 5) + hash) + c;
@@ -46,19 +46,21 @@ def hash(string):
   return hash
 */
 
-#define CONFIGURE        249884308848926567ul
-#define CHECKOUT           7572242387329307ul
-#define UPDATE                6954104508584ul
-#define UPGRADE             229485452931341ul
-#define COMMIT                6953399221742ul
-#define PUSH                     6385597157ul
-#define CREATE                6953402479289ul
-#define DESTROY             229463081808367ul
-#define ADD                       193486030ul
-#define REMOVE                6953974396019ul
-#define CURRENTVERSION 10849296509759198024ul
-#define HISTORY             229468404218647ul
-#define ROLLBACK           7572890988531503ul
+enum command_hashes {
+    CONFIGURE      =   249884308848926567ul,
+    CHECKOUT       =     7572242387329307ul,
+    UPDATE         =        6954104508584ul,
+    UPGRADE        =      229485452931341ul,
+    COMMIT         =        6953399221742ul,
+    PUSH           =           6385597157ul,
+    CREATE         =        6953402479289ul,
+    DESTROY        =      229463081808367ul,
+    ADD            =            193486030ul,
+    REMOVE         =        6953974396019ul,
+    CURRENTVERSION = 10849296509759198024ul,
+    HISTORY        =      229468404218647ul,
+    ROLLBACK       =     7572890988531503ul,
+};
 
 int main(int argc, char * const argv[]) {
     
