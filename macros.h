@@ -1,17 +1,16 @@
 #ifndef __MACROS_H__
 
-#include <stdlib.h>
+#include <stdio.h>     // fprintf()
+#include <stdlib.h>    // exit()
+#include <sys/errno.h> // errno
 
-#ifdef DEBUG_OUTPUT
-#define NOTIF(MSG, ARGS...) fprintf(stderr, MSG "\n", ## ARGS)
-#else
-#define NOTIF(MSG, ARGS...) fprintf(stderr, "");
-#endif
+#define LOG(MSG, ARGS...) fprintf(stderr, MSG "\n", ## ARGS)
 
-#define EXIT(EX, MSG, ARGS...) \
-    do {                       \
-        NOTIF(MSG, ## ARGS);   \
-        exit(EX);              \
+#define EXIT(EX, MSG, ARGS...)                      \
+    do {                                            \
+        LOG(MSG, ## ARGS);                          \
+        if (errno) LOG("WTF: %s", strerror(errno))  \
+        exit(EX);                                   \
     } while (0)
 
 #define __MACROS_H__
