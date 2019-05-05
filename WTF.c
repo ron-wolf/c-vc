@@ -9,7 +9,10 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include "datatypes.h"
+#include <arpa/inet.h>
+#include <netinet/ip.h>
+#include <sys/socket.h>
+
 #include "macros.h"
 
 char usage[] = "./WTF configure      {IP address} {port #}" "\n"
@@ -62,6 +65,40 @@ enum command_hashes {
     ROLLBACK       =     7572890988531503ul,
 };
 
+#define TEST_PORT 9021
+#define BUFF_SIZE 1024
+
+int read_config(struct sockaddr_in * addr) {
+    int matches;
+    
+    FILE * config_file = fopen(".configure", "r");
+    if (! config_file) {
+        memset(addr, 0, sizeof (struct sockaddr_in));
+        matches = -1;
+    } else {
+        addr->sin_family = AF_INET;
+        matches = fscanf(config_file, "%u\n%hu\n", & addr->sin_addr.s_addr, & addr->sin_port);
+    }
+    
+    return matches;
+}
+
+int serv_conn(struct sockaddr_in * addr, size_t len) {
+    int sock_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sock_fd < 0) {
+        LOG("Couldn't create socket");
+        return sock_fd;
+    }
+    
+    int status = connect(sock_fd, (struct sockaddr *) & addr, (socklen_t) len);
+    if (status < 0) {
+        LOG("Could not connect to server");
+        return status;
+    }
+    
+    return sock_fd;
+}
+
 int main(int argc, char * const argv[]) {
     
     if (argc < 2) {
@@ -69,108 +106,143 @@ int main(int argc, char * const argv[]) {
         return EX_USAGE;
     }
     
-    switch (hash((unsigned char *) argv[1])) {
+    struct sockaddr_in addr;
+    int status;
+    
+    switch (hash(argv[1])) {
         case CONFIGURE: {
             if (argc < 4) EXIT(EX_USAGE, usage);
             
-            NOTIF("This command stores the server configuration in a file called \".configure\".");
-            
-            struct config config; int status;
-            status = sscanf(argv[2], "%hhu.%hhu.%hhu.%hhu", config.ip, config.ip+1, config.ip+2, config.ip+3);
-            if (status < 4) EXIT(EX_USAGE, "IP address was formatted incorrectly.");
-            status = sscanf(argv[3], "%u", &config.port);
-            if (status < 1) EXIT(EX_USAGE, "Port was formatted incorrectly.");
+            status = inet_pton(AF_INET, argv[2], & addr.sin_addr);
+            if (status <= 0) EXIT(EX_USAGE, "Invalid IP address");
+            status = sscanf(argv[3], "%hu", & addr.sin_port);
+            if (status < 1) EXIT(EX_USAGE, "Improperly formatted port");
             
             int fd = openat(AT_FDCWD, ".configure", O_CREAT | O_WRONLY);
-            if (fd < 0) EXIT(EX_SOFTWARE, "Couldn't write to the \".configure\" file: %s", strerror(errno));
-            
-            dprintf(fd, "%lu\n%u\n", * (unsigned long *) config.ip, config.port);
+            if (fd < 0) EXIT(EX_SOFTWARE, "Couldn't write to the \".configure\" file");
+            dprintf(fd, "%u\n%hu\n", addr.sin_addr.s_addr, addr.sin_port);
             close(fd);
             
             EXIT(EX_OK, "The configuration was successfully written.");
         }
         
-        case CHECKOUT:
+        case CHECKOUT: {
             if (argc < 3) EXIT(EX_USAGE, usage);
             
-            NOTIF("This command retrieves all files for the project \"%s\" from the server.", argv[2]);
+            char * project = argv[2];
             
-            return 0;
+            status = read_config(& addr);
+            if (status < 1) EXIT(EX_CONFIG, "No valid \".configure\" file exists in project root");
+            
+            int sock_fd = serv_conn(& addr, sizeof addr);
+            if (sock_fd < 0) EXIT(EX_NOHOST, "Server connection failed");
+            else LOG("Connection succeeded");
+            FILE * sock_file = fdopen(sock_fd, "a+");
+            
+            fprintf(sock_file, "ex:%s;", project);
+            
+            char ex_buf[2] = {'\0'};
+            status = recv(sock_fd, ex_buf, 2, 0);
+            if (status <= 0) {
+                if (status == 0) EXIT(EX_PROTOCOL, "Connection closed");
+                else EXIT(EX_TEMPFAIL, "Could not receive data");
+            }
+            if (strncmp(ex_buf, "ex", 2) == 0) LOG("Project \"%s\" was found", project);
+            else if (strncmp(ex_buf, "ne", 2) == 0) EXIT(EX_OK, "No project \"%s\" on server", project);
+            else EXIT(EX_PROTOCOL, "Couldn't check whether project exists");
+            
+            fprintf(sock_file, "co:%s;", project);
+            int tar_fd = open("proj.tar", O_CREAT | O_WRONLY);
+            char tar_buf[BUFF_SIZE] = {'\0'};
+            status = 1;
+            for (status = 1; status > 0; status = recv(sock_fd, tar_buf, 1024, 0)) {
+                write(tar_fd, tar_buf, BUFF_SIZE);
+            }
+            if (status <= 0) {
+                if (status == 0) LOG("Connection closed");
+                else EXIT(EX_TEMPFAIL, "Could not read data from host");
+            }
+            
+            system("tar -xvf proj.tar -C .");
+            system("rm -f proj.tar");
+            
+            EXIT(EX_OK, "All files retrieved!");
+        }
         
         case UPDATE:
             if (argc < 3) EXIT(EX_USAGE, usage);
             
-            NOTIF("This command retrieves all remote changes and stores them in a file called \".Update\".\n");
+            LOG("This command retrieves all remote changes and stores them in a file called \".Update\".\n");
             
             return 0;
         
         case UPGRADE:
             if (argc < 0) EXIT(EX_USAGE, usage);
             
-            NOTIF("This command accepts the changes listed in the \".Update\" file.\n");
+            LOG("This command accepts the changes listed in the \".Update\" file.\n");
             
             return 0;
         
         case COMMIT:
             if (argc < 0) EXIT(EX_USAGE, usage);
             
-            NOTIF("This command catalogs your local changes in a file called \".Commit\".\n");
+            LOG("This command catalogs your local changes in a file called \".Commit\".\n");
             
             return 0;
         
         case PUSH:
             if (argc < 0) EXIT(EX_USAGE, usage);
             
-            NOTIF("This command pushes the changes listed in the \".Update\" file.\n");
+            LOG("This command pushes the changes listed in the \".Update\" file.\n");
             
             return 0;
         
         case CREATE:
             if (argc < 0) EXIT(EX_USAGE, usage);
             
-            NOTIF("This command makes a new project on the server.\n");
+            LOG("This command makes a new project on the server.\n");
             
             return 0;
         
         case DESTROY:
             if (argc < 3) EXIT(EX_USAGE, usage);
             
-            NOTIF("This command removes the project \"%s\" from the server.", argv[2])
+            LOG("This command removes the project \"%s\" from the server.", argv[2]);
             
             return 0;
         
         case ADD:
             if (argc < 4) EXIT(EX_USAGE, usage);
             
-            NOTIF("THis command adds the file \"%s\" to the project \"%s\".", argv[3], argv[2]);
+            LOG("THis command adds the file \"%s\" to the project \"%s\".", argv[3], argv[2]);
             
             return 0;
         
         case REMOVE:
             if (argc < 4) EXIT(EX_USAGE, usage);
             
-            NOTIF("This command removes the file \"%s\" from the project \"%s\".", argv[3], argv[2]);
+            LOG("This command removes the file \"%s\" from the project \"%s\".", argv[3], argv[2]);
             
             return 0;
         
         case CURRENTVERSION:
             if (argc < 3) EXIT(EX_USAGE, usage);
             
-            NOTIF("This command retrieves all files and versions for the project \"%s\" from the server.", argv[2]);
+            LOG("This command retrieves all files and versions for the project \"%s\" from the server.", argv[2]);
             
             return 0;
         
         case HISTORY:
             if (argc < 3) EXIT(EX_USAGE, usage);
             
-            NOTIF("This command retrieves the full history of the project \"%s\" from the server.", argv[2]);
+            LOG("This command retrieves the full history of the project \"%s\" from the server.", argv[2]);
             
             return 0;
         
         case ROLLBACK:
             if (argc < 4) EXIT(EX_USAGE, usage);
             
-            NOTIF("This command rolls the local version of project \"%s\" back to version \"%s\".", argv[2], argv[3]);
+            LOG("This command rolls the local version of project \"%s\" back to version \"%s\".", argv[2], argv[3]);
             
             return 0;
         
