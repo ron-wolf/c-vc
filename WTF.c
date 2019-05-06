@@ -111,7 +111,7 @@ int main(int argc, char * const argv[]) {
     
     switch (hash(argv[1])) {
         case CONFIGURE: {
-            if (argc < 4) EXIT(EX_USAGE, usage);
+            if (argc < 4) EXIT(EX_USAGE, "%s", usage);
             
             status = inet_pton(AF_INET, argv[2], & addr.sin_addr);
             if (status <= 0) EXIT(EX_USAGE, "Invalid IP address");
@@ -127,7 +127,7 @@ int main(int argc, char * const argv[]) {
         }
         
         case CHECKOUT: {
-            if (argc < 3) EXIT(EX_USAGE, usage);
+            if (argc < 3) EXIT(EX_USAGE, "%s", usage);
             
             char * project = argv[2];
             
@@ -170,83 +170,83 @@ int main(int argc, char * const argv[]) {
         }
         
         case UPDATE:
-            if (argc < 3) EXIT(EX_USAGE, usage);
+            if (argc < 3) EXIT(EX_USAGE, "%s", usage);
             
             LOG("This command retrieves all remote changes and stores them in a file called \".Update\".\n");
             
             return 0;
         
         case UPGRADE:
-            if (argc < 0) EXIT(EX_USAGE, usage);
+            if (argc < 0) EXIT(EX_USAGE, "%s", usage);
             
             LOG("This command accepts the changes listed in the \".Update\" file.\n");
             
             return 0;
         
         case COMMIT:
-            if (argc < 0) EXIT(EX_USAGE, usage);
+            if (argc < 0) EXIT(EX_USAGE, "%s", usage);
             
             LOG("This command catalogs your local changes in a file called \".Commit\".\n");
             
             return 0;
         
         case PUSH:
-            if (argc < 0) EXIT(EX_USAGE, usage);
+            if (argc < 0) EXIT(EX_USAGE, "%s", usage);
             
             LOG("This command pushes the changes listed in the \".Update\" file.\n");
             
             return 0;
         
         case CREATE:
-            if (argc < 0) EXIT(EX_USAGE, usage);
+            if (argc < 0) EXIT(EX_USAGE, "%s", usage);
             
             LOG("This command makes a new project on the server.\n");
             
             return 0;
         
         case DESTROY:
-            if (argc < 3) EXIT(EX_USAGE, usage);
+            if (argc < 3) EXIT(EX_USAGE, "%s", usage);
             
             LOG("This command removes the project \"%s\" from the server.", argv[2]);
             
             return 0;
         
         case ADD:
-            if (argc < 4) EXIT(EX_USAGE, usage);
+            if (argc < 4) EXIT(EX_USAGE, "%s", usage);
             
             LOG("THis command adds the file \"%s\" to the project \"%s\".", argv[3], argv[2]);
             
             return 0;
         
         case REMOVE:
-            if (argc < 4) EXIT(EX_USAGE, usage);
+            if (argc < 4) EXIT(EX_USAGE, "%s", usage);
             
             LOG("This command removes the file \"%s\" from the project \"%s\".", argv[3], argv[2]);
             
             return 0;
         
         case CURRENTVERSION:
-            if (argc < 3) EXIT(EX_USAGE, usage);
+            if (argc < 3) EXIT(EX_USAGE, "%s", usage);
             
             LOG("This command retrieves all files and versions for the project \"%s\" from the server.", argv[2]);
             
             return 0;
         
         case HISTORY:
-            if (argc < 3) EXIT(EX_USAGE, usage);
+            if (argc < 3) EXIT(EX_USAGE, "%s", usage);
             
             LOG("This command retrieves the full history of the project \"%s\" from the server.", argv[2]);
             
             return 0;
         
         case ROLLBACK:
-            if (argc < 4) EXIT(EX_USAGE, usage);
+            if (argc < 4) EXIT(EX_USAGE, "%s", usage);
             
             LOG("This command rolls the local version of project \"%s\" back to version \"%s\".", argv[2], argv[3]);
             
             return 0;
         
-        default: EXIT(EX_USAGE, usage);
+        default: EXIT(EX_USAGE, "%s", usage);
     }
     
     return 0;

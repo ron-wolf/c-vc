@@ -41,7 +41,7 @@ void accept_sock(int sock_fd) {
 }
 
 int main(int argc, char * const argv[]) {
-    if (argc < 2) EXIT(EX_USAGE, usage);
+    if (argc < 2) EXIT(EX_USAGE, "%s", usage);
     
     int status;
     
