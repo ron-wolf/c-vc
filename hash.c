@@ -8,7 +8,7 @@
 //function takes the file descriptor as an argument, returns the hash number
 long long hash_fd(char * file_path){
 	unsigned long long hash = 0;	//unsigned long long to store the hash
-	char buf[BUFF_SIZE];					//buffer size of one
+	char buf[BUFF_SIZE];			//creates a buffer of the size of the macro BUFF_SIZE
 	int readResult;					//int to make sure the result of read is not an error
 	int fileDesc = 0;
 	
@@ -21,7 +21,7 @@ long long hash_fd(char * file_path){
 	
 	//reads the file descriptor and makes sure that it is not an error
 	while((readResult = read(fileDesc, buf, BUFF_SIZE)) > 0){
-		//loop to multiply the hash by 10 and then
+		//loop to multiply the current hash value by 10 and then
 		//adds the ASCII value of each individual byte to the hash
 		int i; for(i=0; i < readResult; i++){
 			hash *= 10;
