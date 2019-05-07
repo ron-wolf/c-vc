@@ -24,7 +24,7 @@ int mkfile(char const * file_path) {
   status = system(cmd); free(cmd);
   if (status) return status;
   
-  APPEND_INTO(cmd, "touch ', file_path, "'");
+  APPEND_INTO(cmd, "touch '", file_path, "'");
   status = system(cmd); free(cmd);
   return status;
 }

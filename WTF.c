@@ -137,7 +137,7 @@ int main(int argc, char * const argv[]) {
             int sock_fd = serv_conn(& addr, sizeof addr);
             if (sock_fd < 0) EXIT(EX_NOHOST, "Server connection failed");
             else LOG("Connection succeeded");
-            FILE * sock_file = fdopen(sock_fd, "a+");
+            FILE * sock_file = fdopen(sock_fd, "r+");
             
             fprintf(sock_file, "ex:%s;", project);
             
