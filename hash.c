@@ -7,7 +7,7 @@
 
 //function takes the file descriptor as an argument, returns the hash number
 long long hash_fd(char * file_path){
-	unsigned long long hash = 0;	//unsigned long long to store the hash
+	unsigned long hash = 0;	//unsigned long long to store the hash
 	char buf[BUFF_SIZE];			//creates a buffer of the size of the macro BUFF_SIZE
 	int readResult;					//int to make sure the result of read is not an error
 	int fileDesc = 0;
@@ -36,5 +36,5 @@ long long hash_fd(char * file_path){
 		return -1;
 	}
 	
-	return hash;
+	return (long long)hash;
 }
