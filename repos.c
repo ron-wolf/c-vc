@@ -52,7 +52,7 @@ void checkout(char * repo_name, int sock_fd) {
     open_mutex_read(repo_name);
     
     char * cmd = calloc(sizeof (char), 65536);
-    sprintf(cmd, "tar -cvf .repos/%s/repo.tar");
+    sprintf(cmd, "tar -cvf .repos/%s/repo.tar", repo_name);
     
     FILE * man_file = fdopen(man_fd, "r");
     char * filename = calloc(sizeof (char), 256);

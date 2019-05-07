@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h> // memset
+#include <string.h>
 #include <sysexits.h>
 
 #include <ifaddrs.h>
@@ -16,11 +16,6 @@
 #define MAX_QUEUED_CONNS  20
 #define DELAY             3
 #define MAX_PROJ_NAME_LEN 32
-
-#define SHORT(char_ptr) (* (unsigned short *) (char_ptr))
-enum cmd_abbrevs {
-    CHECKOUT = SHORT("co"),
-};
 
 char usage[] = "./WTFserver {port #}";
 
@@ -53,9 +48,8 @@ void accept_sock(int sock_fd) {
     int status = fscanf(sock_file, "%2s:%s;", cmd, proj);
     if (status < 2) EXIT(EX_PROTOCOL, "Invalid command and project sent");
     if (proj[MAX_PROJ_NAME_LEN] != '\0') EXIT(EX_PROTOCOL, "Project name too long");
-    switch (SHORT(cmd)) {
-        case CHECKOUT: checkout(proj, sock_fd);
-    }
+    
+    if (strcmp(cmd, "co") == 0) checkout(proj, sock_fd);
 }
 
 int main(int argc, char * const argv[]) {
