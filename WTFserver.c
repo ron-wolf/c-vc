@@ -10,10 +10,17 @@
 #include <sys/socket.h>
 
 #include "macros.h"
+#include "repos.h"
 
 
-#define MAX_QUEUED_CONNS 20
-#define DELAY            3
+#define MAX_QUEUED_CONNS  20
+#define DELAY             3
+#define MAX_PROJ_NAME_LEN 32
+
+#define SHORT(char_ptr) (* (unsigned short *) (char_ptr))
+enum cmd_abbrevs {
+    CHECKOUT = SHORT("co"),
+};
 
 char usage[] = "./WTFserver {port #}";
 
@@ -28,7 +35,7 @@ void print_local_ips() {
     freeifaddrs(info_list);
 }
 
-void accept_sock(int sock_fd) {
+void print_sock(int sock_fd) {
     char * buffer; for (
       buffer = calloc(sizeof (char), BUFF_SIZE);
       read(sock_fd, buffer, BUFF_SIZE) > 0;
@@ -37,6 +44,18 @@ void accept_sock(int sock_fd) {
     }
     free(buffer);
     send(sock_fd, "Got it!", 7, 0);
+}
+
+void accept_sock(int sock_fd) {
+    FILE * sock_file = fdopen(sock_fd, "r+");
+    char * cmd = calloc(sizeof (char), 2 + 1);
+    char * proj = calloc(sizeof (char), MAX_PROJ_NAME_LEN + 1);
+    int status = fscanf(sock_file, "%2s:%s;", cmd, proj);
+    if (status < 2) EXIT(EX_PROTOCOL, "Invalid command and project sent");
+    if (proj[MAX_PROJ_NAME_LEN] != '\0') EXIT(EX_PROTOCOL, "Project name too long");
+    switch (SHORT(cmd)) {
+        case CHECKOUT: checkout(proj, sock_fd);
+    }
 }
 
 int main(int argc, char * const argv[]) {
@@ -69,7 +88,7 @@ int main(int argc, char * const argv[]) {
     while ((new_sock = accept(sock_fd, addr_ptr, & addr_len)) >= 0) {
         LOG("Got a message at file descriptor %d", new_sock);
         if (fork() == 0) {
-            accept_sock(new_sock);
+            print_sock(new_sock);
             return EX_OK;
         }
         sleep(DELAY);

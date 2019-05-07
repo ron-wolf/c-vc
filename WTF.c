@@ -33,7 +33,7 @@ char usage[] = "./WTF configure      {IP address} {port #}" "\n"
 
 static unsigned long hash(char * string) {
     unsigned long hash = 5381;
-    int c; while ((c = *(string++)))
+    unsigned char c; while ((c = (unsigned char) *(string++)))
         hash = ((hash << 5) + hash) + c;
     return hash;
 }
