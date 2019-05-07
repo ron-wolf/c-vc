@@ -13,7 +13,6 @@
 
 
 #define MAX_QUEUED_CONNS 20
-#define BUFF_SIZE        1024
 #define DELAY            3
 
 char usage[] = "./WTFserver {port #}";
